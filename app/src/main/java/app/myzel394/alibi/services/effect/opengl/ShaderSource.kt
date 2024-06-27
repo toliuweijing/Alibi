@@ -9,7 +9,7 @@ object ShaderSource {
         """
         attribute vec4 aPosition;
         attribute vec4 aTexCoords;
-        uniform mat4 uMVP;
+        uniform mat4 uMvpMatrix;
         uniform mat4 uTexMatrix;
         varying vec2 vTexCoords;
         

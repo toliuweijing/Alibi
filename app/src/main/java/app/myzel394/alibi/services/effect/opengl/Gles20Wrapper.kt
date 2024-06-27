@@ -48,6 +48,18 @@ class Gles20Wrapper {
         GLES20.glDeleteProgram(program)
     }
 
+    fun glGetAttribLocation(program: Int, name: String): Int {
+        return GLES20.glGetAttribLocation(program, name).also {
+            checkGlError("glGetAttribLocation: $name")
+        }
+    }
+
+    fun glGetUniformLocation(program: Int, name: String): Int {
+        return GLES20.glGetUniformLocation(program, name).also {
+            checkGlError("glGetUniformLocation: $name")
+        }
+    }
+
     private fun checkLinkStatus(program: Int) {
         val status = IntArray(1)
         GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, status, 0)
@@ -75,5 +87,9 @@ class Gles20Wrapper {
                 "Fails to execute $description, error $error"
             }
         }
+    }
+
+    companion object {
+        val DEFAULT = Gles20Wrapper()
     }
 }
