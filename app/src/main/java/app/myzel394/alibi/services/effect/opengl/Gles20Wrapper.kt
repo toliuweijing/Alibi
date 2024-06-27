@@ -1,6 +1,7 @@
 package app.myzel394.alibi.services.effect.opengl
 
 import android.opengl.GLES20
+import java.nio.Buffer
 
 /**
  * Execute gl commands via GLES20 and check for errors before returning.
@@ -58,6 +59,28 @@ class Gles20Wrapper {
         return GLES20.glGetUniformLocation(program, name).also {
             checkGlError("glGetUniformLocation: $name")
         }
+    }
+
+    fun glUseProgram(program: Int) {
+        GLES20.glUseProgram(program)
+        checkGlError("glUseProgram")
+    }
+
+    fun glEnableVertexAttribArray(location: Int) {
+        GLES20.glEnableVertexAttribArray(location)
+        checkGlError("glEnableVertexAttribArray")
+    }
+
+    fun glVertexAttribPointer(
+        location: Int,
+        size: Int,
+        type: Int,
+        normalized: Boolean,
+        stride: Int,
+        buffer: Buffer,
+    ) {
+        GLES20.glVertexAttribPointer(location, size, type, normalized, stride, buffer)
+        checkGlError("glVertexAttribPointer")
     }
 
     private fun checkLinkStatus(program: Int) {

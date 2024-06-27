@@ -1,6 +1,5 @@
 package app.myzel394.alibi.services.effect.opengl
 
-import android.opengl.GLES20
 import android.util.Log
 
 private const val TAG = "GlProgram"
@@ -10,20 +9,19 @@ private const val INVALID = -1
  * Represents an opengl program for drawing 2D graphics.
  */
 class GlProgram(
-    vertexShaderSrc: String,
-    fragmentShaderSrc: String,
+    private val vertexShader: GlVertexShader,
+    private val fragmentShader: GlFragmentShader,
     private val gles20: Gles20Wrapper = Gles20Wrapper(),
 ) {
-    private var program: Int = INVALID
-    private var vertexShader: Int = INVALID
-    private var fragmentShader: Int = INVALID
+    var programId: Int = INVALID
+        private set
 
     init {
         try {
-            program = gles20.glCreateProgram()
-            vertexShader = gles20.loadShader(GLES20.GL_VERTEX_SHADER, vertexShaderSrc, program)
-            fragmentShader = gles20.loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSrc, program)
-            gles20.glLinkProgram(program)
+            programId = gles20.glCreateProgram()
+            gles20.glAttachShader(programId, vertexShader.shaderId)
+            gles20.glAttachShader(programId, fragmentShader.shaderId)
+            gles20.glLinkProgram(programId)
         } catch (e: IllegalStateException) {
             Log.d(TAG, "Fails to init program, $e")
             release()
@@ -31,17 +29,9 @@ class GlProgram(
     }
 
     fun release() {
-        if (program != INVALID) {
-            gles20.glDeleteProgram(program)
-            program = INVALID
-        }
-        if (vertexShader != INVALID) {
-            gles20.glDeleteShader(vertexShader)
-            vertexShader = INVALID
-        }
-        if (fragmentShader != INVALID) {
-            gles20.glDeleteShader(fragmentShader)
-            fragmentShader = INVALID
+        if (programId != INVALID) {
+            gles20.glDeleteProgram(programId)
+            programId = INVALID
         }
     }
 }
