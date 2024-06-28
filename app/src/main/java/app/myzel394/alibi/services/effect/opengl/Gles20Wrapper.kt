@@ -3,6 +3,8 @@ package app.myzel394.alibi.services.effect.opengl
 import android.opengl.GLES20
 import java.nio.Buffer
 
+const val GL_INVALID = -1
+
 /**
  * Execute gl commands via GLES20 and check for errors before returning.
  */
@@ -49,6 +51,27 @@ class Gles20Wrapper {
         GLES20.glDeleteProgram(program)
     }
 
+    fun glGenTextures(size: Int, result: IntArray, offset: Int) {
+        return GLES20.glGenTextures(size, result, offset).also {
+            checkGlError("glGenTextures")
+        }
+    }
+
+    fun glDeleteTextures(size: Int, result: IntArray, offset: Int) {
+        GLES20.glDeleteTextures(size, result, 0)
+        checkGlError("glDeleteTextures")
+    }
+
+    fun glBindTexture(type: Int, texId: Int) {
+        GLES20.glBindTexture(type, texId)
+        checkGlError("glBindTexture")
+    }
+
+    fun glTexParameter(type: Int, key: Int, value: Int) {
+        GLES20.glTexParameteri(type, key, value)
+        checkGlError("glTexParameter")
+    }
+
     fun glGetAttribLocation(program: Int, name: String): Int {
         return GLES20.glGetAttribLocation(program, name).also {
             checkGlError("glGetAttribLocation: $name")
@@ -81,6 +104,22 @@ class Gles20Wrapper {
     ) {
         GLES20.glVertexAttribPointer(location, size, type, normalized, stride, buffer)
         checkGlError("glVertexAttribPointer")
+    }
+
+    fun glUniformMatrix4fv(
+        location: Int,
+        count: Int,
+        transpose: Boolean,
+        floatArray: FloatArray,
+        offset: Int,
+    ) {
+        GLES20.glUniformMatrix4fv(location, count, transpose, floatArray, offset)
+        checkGlError("glUniformMatrix4fv")
+    }
+
+    fun glDrawArrays(mode: Int, first: Int, count: Int) {
+        GLES20.glDrawArrays(mode, first, count)
+        checkGlError("glDrawArrays")
     }
 
     private fun checkLinkStatus(program: Int) {

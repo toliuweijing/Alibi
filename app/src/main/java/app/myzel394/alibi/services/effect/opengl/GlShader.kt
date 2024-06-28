@@ -1,22 +1,25 @@
 package app.myzel394.alibi.services.effect.opengl
 
+import android.opengl.GLES11Ext
 import android.opengl.GLES20
-
-sealed interface Shader {
-
-    interface Vertex : Shader
-
-    interface Fragment : Shader
-}
 
 sealed class GlShader(
     private val shaderType: Int,
     private val shaderSource: String,
     private val gles20: Gles20Wrapper = Gles20Wrapper.DEFAULT,
 ) {
-    val shaderId: Int = gles20.loadShader(shaderType, shaderSource)
+    var shaderId: Int = GL_INVALID
 
-    fun release() = gles20.glDeleteShader(shaderId)
+    fun init() {
+        shaderId = gles20.loadShader(shaderType, shaderSource)
+    }
+
+    fun release() {
+        if (shaderId != GL_INVALID) {
+            gles20.glDeleteShader(shaderId)
+            shaderId = GL_INVALID
+        }
+    }
 }
 
 abstract class GlVertexShader(
@@ -48,9 +51,15 @@ class DefaultVertexShader(
     }
 }
 
-class FragmentTextureExtShader(
-    private val gles20: Gles20Wrapper = Gles20Wrapper.DEFAULT,
+class FragmentTextureShader(
+    private val shaderSource: String,
 ) : GlFragmentShader(
     GLES20.GL_FRAGMENT_SHADER,
-    ShaderSource.FRAGMENT_TEXTURE_EXT
-)
+    shaderSource,
+) {
+    val textureType get() = if (shaderSource == ShaderSource.FRAGMENT_TEXTURE_EXT) {
+        GLES11Ext.GL_TEXTURE_EXTERNAL_OES
+    } else {
+        GLES20.GL_TEXTURE_2D
+    }
+}

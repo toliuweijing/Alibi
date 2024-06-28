@@ -16,7 +16,7 @@ class GlProgram(
     var programId: Int = INVALID
         private set
 
-    init {
+    fun init() {
         try {
             programId = gles20.glCreateProgram()
             gles20.glAttachShader(programId, vertexShader.shaderId)
