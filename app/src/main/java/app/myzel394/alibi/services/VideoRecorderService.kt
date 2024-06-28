@@ -8,6 +8,7 @@ import android.util.Range
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.TorchState
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileDescriptorOutputOptions
 import androidx.camera.video.FileOutputOptions
@@ -25,6 +26,7 @@ import app.myzel394.alibi.db.RecordingInformation
 import app.myzel394.alibi.enums.RecorderState
 import app.myzel394.alibi.helpers.BatchesFolder
 import app.myzel394.alibi.helpers.VideoBatchesFolder
+import app.myzel394.alibi.services.effect.WatermarkEffect
 import app.myzel394.alibi.ui.SUPPORTS_SAVING_VIDEOS_IN_CUSTOM_FOLDERS
 import app.myzel394.alibi.ui.SUPPORTS_SCOPED_STORAGE
 import kotlinx.coroutines.CompletableDeferred
@@ -63,6 +65,8 @@ class VideoRecorderService :
     var cameraControl: CameraControl? = null
         private set
 
+    private var watermarkEffect: WatermarkEffect? = null
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == "init") {
             selectedCamera = CameraSelector.Builder().requireLensFacing(
@@ -97,6 +101,9 @@ class VideoRecorderService :
         withTimeoutOrNull(CAMERA_CLOSE_TIMEOUT) {
             _cameraCloserListener.await()
         }
+
+        watermarkEffect?.release()
+        watermarkEffect = null
     }
 
     override fun pause() {
@@ -188,14 +195,25 @@ class VideoRecorderService :
         }
 
         val recorder = buildRecorder()
-        videoCapture = buildVideoCapture(recorder)
+        val videoCapture = buildVideoCapture(recorder).also {
+            this.videoCapture = it
+        }
+
+        val watermarkEffect = WatermarkEffect {}.also {
+            it.init()
+            this.watermarkEffect = it
+        }
+        val useCaseGroup = UseCaseGroup.Builder()
+            .addUseCase(videoCapture)
+            .addEffect(watermarkEffect)
+            .build()
 
         runOnMain {
             try {
                 camera = cameraProvider!!.bindToLifecycle(
                     this,
                     selectedCamera,
-                    videoCapture
+                    useCaseGroup,
                 )
 
                 cameraControl = CameraControl(camera!!).also {
@@ -205,6 +223,7 @@ class VideoRecorderService :
 
                 _cameraAvailableListener.complete(Unit)
             } catch (error: IllegalArgumentException) {
+                watermarkEffect.release()
                 onError()
             }
         }

@@ -84,6 +84,10 @@ class Gles20Wrapper {
         }
     }
 
+    fun glViewport(x: Int, y: Int, width: Int, height: Int) {
+        GLES20.glViewport(x, y, width, height)
+    }
+
     fun glUseProgram(program: Int) {
         GLES20.glUseProgram(program)
         checkGlError("glUseProgram")

@@ -1,18 +1,16 @@
 package app.myzel394.alibi.services.effect.opengl
 
 import android.opengl.GLES20
-import android.util.Size
 
 interface RenderPass {
 
     fun init()
 
-    fun setSize(width: Int, height: Int)
+    fun setSurfaceSize(width: Int, height: Int)
 
     fun draw(
         texMatrix: FloatArray,
         mvpMatrix: FloatArray,
-        timestampNs: Long,
     )
 
     fun release()
@@ -45,18 +43,19 @@ class CameraRenderPass(
         texId = gles20Wrapper.createTexture(fragmentShader.textureType)
     }
 
-    override fun setSize(width: Int, height: Int) {
+    override fun setSurfaceSize(width: Int, height: Int) {
         this.width = width
         this.height = height
     }
 
-    override fun draw(texMatrix: FloatArray, mvpMatrix: FloatArray, timestampNs: Long) {
+    override fun draw(texMatrix: FloatArray, mvpMatrix: FloatArray) {
+        gles20Wrapper.glViewport(0, 0, width, height)
         gles20Wrapper.glUseProgram(program.programId)
         gles20Wrapper.glUniformMatrix4fv(
-            vertexShader.uMvpMatrix,
+            vertexShader.uTexMatrix,
             1,
             false,
-            mvpMatrix,
+            texMatrix,
             0
         )
         gles20Wrapper.glUniformMatrix4fv(
