@@ -1,4 +1,4 @@
-package app.myzel394.alibi.services.effect.opengl
+package app.myzel394.alibi.effect.opengl.egl
 
 import android.opengl.EGL14
 import android.opengl.EGLConfig
@@ -11,6 +11,9 @@ import android.view.Surface
 
 private const val TAG = "EglCore"
 
+/**
+ * Used to manage egl resource lifecycles and operations.
+ */
 class EglCore {
 
     private var display: EGLDisplay = EGL14.EGL_NO_DISPLAY

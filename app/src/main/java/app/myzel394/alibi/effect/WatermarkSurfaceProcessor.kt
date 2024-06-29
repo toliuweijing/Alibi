@@ -1,46 +1,15 @@
-package app.myzel394.alibi.services.effect
+package app.myzel394.alibi.effect
 
 import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
-import androidx.camera.core.CameraEffect
 import androidx.camera.core.SurfaceOutput
 import androidx.camera.core.SurfaceProcessor
 import androidx.camera.core.SurfaceRequest
-import androidx.core.util.Consumer
-import app.myzel394.alibi.services.effect.opengl.OpenGlRenderer
+import app.myzel394.alibi.effect.opengl.OpenGlRenderer
 import java.util.concurrent.Executor
-
-class WatermarkEffect(
-    targets: Int,
-    private val surfaceProcessor: WatermarkSurfaceProcessor,
-    errorListener: Consumer<Throwable>,
-) : CameraEffect(
-    targets,
-    surfaceProcessor.glExecutor,
-    surfaceProcessor,
-    errorListener,
-) {
-
-    constructor(
-        context: Context,
-        targets: Int = PREVIEW or VIDEO_CAPTURE,
-        errorListener: Consumer<Throwable> = Consumer {},
-    ) : this(targets, WatermarkSurfaceProcessor(context), errorListener)
-
-    fun init() {
-        surfaceProcessor.init()
-    }
-
-    fun release() {
-        surfaceProcessor.release()
-    }
-}
-
-private const val TAG = "WatermarkSurfaceProcessor"
 
 class WatermarkSurfaceProcessor(
     private val openGlRenderer: OpenGlRenderer,
@@ -51,14 +20,16 @@ class WatermarkSurfaceProcessor(
     private val glThread: HandlerThread = HandlerThread("GlThread").apply {
         start()
     }
+
     private val glHandler: Handler = Handler(glThread.looper)
-    val glExecutor: Executor = Executor { glHandler.post(it) }
 
     private val texMatrix = FloatArray(16)
 
     private var inputSurface: InputSurface? = null
 
-    class InputSurface(
+    val glExecutor: Executor = Executor { glHandler.post(it) }
+
+    private class InputSurface(
         val surfaceTexture: SurfaceTexture,
         val surface: Surface,
     )
@@ -103,6 +74,7 @@ class WatermarkSurfaceProcessor(
         }
         inputSurface = null
         openGlRenderer.release()
+        glThread.quitSafely()
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {

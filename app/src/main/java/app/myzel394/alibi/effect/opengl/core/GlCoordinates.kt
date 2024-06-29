@@ -1,4 +1,4 @@
-package app.myzel394.alibi.services.effect.opengl
+package app.myzel394.alibi.effect.opengl.core
 
 object GlCoordinates {
 

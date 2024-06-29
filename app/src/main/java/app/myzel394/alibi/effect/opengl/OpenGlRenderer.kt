@@ -1,4 +1,4 @@
-package app.myzel394.alibi.services.effect.opengl
+package app.myzel394.alibi.effect.opengl
 
 import android.content.Context
 import android.opengl.EGL14
@@ -6,6 +6,9 @@ import android.opengl.EGLSurface
 import android.opengl.Matrix
 import android.view.Surface
 import androidx.camera.core.SurfaceOutput
+import app.myzel394.alibi.effect.opengl.egl.EglCore
+import app.myzel394.alibi.effect.opengl.renderpass.CameraRenderPass
+import app.myzel394.alibi.effect.opengl.renderpass.WatermarkRenderPass
 
 class OpenGlRenderer(
     private val context: Context,

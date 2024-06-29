@@ -1,7 +1,8 @@
-package app.myzel394.alibi.services.effect.opengl
+package app.myzel394.alibi.effect.opengl.core
 
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
+import app.myzel394.alibi.effect.opengl.ShaderSource
 
 sealed class GlShader(
     private val shaderType: Int,

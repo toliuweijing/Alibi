@@ -26,7 +26,7 @@ import app.myzel394.alibi.db.RecordingInformation
 import app.myzel394.alibi.enums.RecorderState
 import app.myzel394.alibi.helpers.BatchesFolder
 import app.myzel394.alibi.helpers.VideoBatchesFolder
-import app.myzel394.alibi.services.effect.WatermarkEffect
+import app.myzel394.alibi.effect.WatermarkEffect
 import app.myzel394.alibi.ui.SUPPORTS_SAVING_VIDEOS_IN_CUSTOM_FOLDERS
 import app.myzel394.alibi.ui.SUPPORTS_SCOPED_STORAGE
 import kotlinx.coroutines.CompletableDeferred
