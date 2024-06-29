@@ -1,9 +1,9 @@
 package app.myzel394.alibi.services.effect
 
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
 import android.view.Surface
 import androidx.camera.core.CameraEffect
 import androidx.camera.core.SurfaceOutput
@@ -14,15 +14,22 @@ import app.myzel394.alibi.services.effect.opengl.OpenGlRenderer
 import java.util.concurrent.Executor
 
 class WatermarkEffect(
-    targets: Int = PREVIEW or VIDEO_CAPTURE,
-    private val surfaceProcessor: WatermarkSurfaceProcessor = WatermarkSurfaceProcessor(),
-    errorListener: Consumer<Throwable> = Consumer {},
+    targets: Int,
+    private val surfaceProcessor: WatermarkSurfaceProcessor,
+    errorListener: Consumer<Throwable>,
 ) : CameraEffect(
     targets,
     surfaceProcessor.glExecutor,
     surfaceProcessor,
     errorListener,
 ) {
+
+    constructor(
+        context: Context,
+        targets: Int = PREVIEW or VIDEO_CAPTURE,
+        errorListener: Consumer<Throwable> = Consumer {},
+    ) : this(targets, WatermarkSurfaceProcessor(context), errorListener)
+
     fun init() {
         surfaceProcessor.init()
     }
@@ -33,9 +40,12 @@ class WatermarkEffect(
 }
 
 private const val TAG = "WatermarkSurfaceProcessor"
+
 class WatermarkSurfaceProcessor(
-    private val openGlRenderer: OpenGlRenderer = OpenGlRenderer(),
+    private val openGlRenderer: OpenGlRenderer,
 ) : SurfaceProcessor, SurfaceTexture.OnFrameAvailableListener {
+
+    constructor(context: Context) : this(OpenGlRenderer(context))
 
     private val glThread: HandlerThread = HandlerThread("GlThread").apply {
         start()

@@ -26,7 +26,12 @@ sealed class GlShader(
 abstract class GlVertexShader(
     private val shaderType: Int,
     private val shaderSource: String,
-) : GlShader(shaderType, shaderSource)
+) : GlShader(shaderType, shaderSource) {
+
+    abstract fun loadLocations(program: Int)
+
+    abstract fun configureAttributes()
+}
 
 abstract class GlFragmentShader(
     private val shaderType: Int,
@@ -40,15 +45,43 @@ class DefaultVertexShader(
     ShaderSource.VERTEX_DEFAULT,
 ) {
     var aPosition = -1
-    var aTexCoords = -1
-    var uMvpMatrix = -1
-    var uTexMatrix = -1
+        private set
 
-    fun loadLocations(program: Int) {
+    var aTexCoords = -1
+        private set
+
+    var uMvpMatrix = -1
+        private set
+
+    var uTexMatrix = -1
+        private set
+
+    override fun loadLocations(program: Int) {
         aPosition = gles20.glGetAttribLocation(program, "aPosition")
         aTexCoords = gles20.glGetAttribLocation(program, "aTexCoords")
         uTexMatrix = gles20.glGetUniformLocation(program, "uTexMatrix")
         uMvpMatrix = gles20.glGetUniformLocation(program, "uMvpMatrix")
+    }
+
+    override fun configureAttributes() {
+        gles20.glEnableVertexAttribArray(aPosition)
+        gles20.glVertexAttribPointer(
+            aPosition,
+            2,
+            GLES20.GL_FLOAT,
+            false,
+            0,
+            GlCoordinates.VERTEX_COORDS,
+        )
+        gles20.glEnableVertexAttribArray(aTexCoords)
+        gles20.glVertexAttribPointer(
+            aTexCoords,
+            2,
+            GLES20.GL_FLOAT,
+            false,
+            0,
+            GlCoordinates.TEX_COORDS,
+        )
     }
 }
 
@@ -58,9 +91,10 @@ class FragmentTextureShader(
     GLES20.GL_FRAGMENT_SHADER,
     shaderSource,
 ) {
-    val textureType get() = if (shaderSource == ShaderSource.FRAGMENT_TEXTURE_EXT) {
-        GLES11Ext.GL_TEXTURE_EXTERNAL_OES
-    } else {
-        GLES20.GL_TEXTURE_2D
-    }
+    val textureType
+        get() = if (shaderSource == ShaderSource.FRAGMENT_TEXTURE_EXT) {
+            GLES11Ext.GL_TEXTURE_EXTERNAL_OES
+        } else {
+            GLES20.GL_TEXTURE_2D
+        }
 }

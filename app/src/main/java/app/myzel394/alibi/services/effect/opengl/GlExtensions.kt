@@ -5,6 +5,8 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
+const val GL_INVALID = -1
+
 fun Gles20Wrapper.loadShader(shaderType: Int, shaderSource: String, program: Int? = null): Int {
     var shader = -1
     try {

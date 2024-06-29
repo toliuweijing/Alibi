@@ -190,8 +190,10 @@ class VideoRecorderService :
     // Used to open it for a longer time, shouldn't be called when pausing / resuming.
     // This should only be called when starting a recording.
     private suspend fun openCamera() {
+        val context = this@VideoRecorderService
+
         cameraProvider = withContext(Dispatchers.IO) {
-            ProcessCameraProvider.getInstance(this@VideoRecorderService).get()
+            ProcessCameraProvider.getInstance(context).get()
         }
 
         val recorder = buildRecorder()
@@ -199,7 +201,7 @@ class VideoRecorderService :
             this.videoCapture = it
         }
 
-        val watermarkEffect = WatermarkEffect {}.also {
+        val watermarkEffect = WatermarkEffect(context).also {
             it.init()
             this.watermarkEffect = it
         }

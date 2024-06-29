@@ -28,6 +28,10 @@ class GlProgram(
         }
     }
 
+    fun use() {
+        gles20.glUseProgram(programId)
+    }
+
     fun release() {
         if (programId != INVALID) {
             gles20.glDeleteProgram(programId)

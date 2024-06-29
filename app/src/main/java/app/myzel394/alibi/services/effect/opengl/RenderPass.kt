@@ -1,19 +1,112 @@
 package app.myzel394.alibi.services.effect.opengl
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.opengl.GLES20
+import android.opengl.GLUtils
+import android.util.Size
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 interface RenderPass {
 
     fun init()
 
-    fun setSurfaceSize(width: Int, height: Int)
-
     fun draw(
         texMatrix: FloatArray,
         mvpMatrix: FloatArray,
+        surfaceSize: Size,
     )
 
     fun release()
+}
+
+class WatermarkRenderPass(
+    private val context: Context,
+    private val vertexShader: DefaultVertexShader,
+    private val fragmentShader: FragmentTextureShader,
+    private val program: GlProgram,
+    private val gles20Wrapper: Gles20Wrapper = Gles20Wrapper.DEFAULT,
+) : RenderPass {
+
+    constructor(
+        context: Context,
+        vertexShader: DefaultVertexShader =
+            DefaultVertexShader(),
+        fragmentShader: FragmentTextureShader =
+            FragmentTextureShader(ShaderSource.FRAGMENT_TEXTURE_2D),
+    ) : this(context, vertexShader, fragmentShader, GlProgram(vertexShader, fragmentShader))
+
+    private var texId: Int = GL_INVALID
+
+    private val textFormat = SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SS", Locale.US);
+
+    private val paint = Paint().apply {
+        // prefer dp over sp for video watermark
+        textSize = 20 * context.resources.displayMetrics.density
+        isAntiAlias = true
+        color = Color.WHITE
+        setShadowLayer(1f, 0f, 0f, Color.BLACK)
+    }
+
+    private val bitmap: Bitmap by lazy {
+        val text = textFormat.format(Date())
+        val rect = Rect()
+        paint.getTextBounds(text, 0, text.length, rect)
+        Bitmap.createBitmap(
+            rect.width(),
+            rect.height() + 10, // TODO: investigate why height doesn't match
+            Bitmap.Config.ARGB_8888,
+        )
+    }
+
+    private val canvas: Canvas by lazy {
+        Canvas(bitmap)
+    }
+
+    override fun init() {
+        vertexShader.init()
+        fragmentShader.init()
+        program.init()
+
+        program.use()
+        vertexShader.loadLocations(program.programId)
+        vertexShader.configureAttributes()
+        texId = gles20Wrapper.createTexture(GLES20.GL_TEXTURE_2D)
+    }
+
+    override fun draw(texMatrix: FloatArray, mvpMatrix: FloatArray, surfaceSize: Size) {
+        program.use()
+
+        gles20Wrapper.glEnable(GLES20.GL_BLEND)
+        gles20Wrapper.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        gles20Wrapper.glActiveTexture(GLES20.GL_TEXTURE0)
+        gles20Wrapper.glBindTexture(fragmentShader.textureType, texId)
+        drawTextToBitmap()
+        gles20Wrapper.glViewport(0, 0, bitmap.width, bitmap.height)
+        GLUtils.texImage2D(fragmentShader.textureType, 0, bitmap, 0)
+
+        gles20Wrapper.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+
+        gles20Wrapper.glDisable(GLES20.GL_BLEND)
+    }
+
+    private fun drawTextToBitmap() {
+        val text = textFormat.format(Date())
+        bitmap.eraseColor(Color.TRANSPARENT)
+        canvas.drawText(text, 0f, 0f, paint)
+    }
+
+    override fun release() {
+        program.release()
+        vertexShader.release()
+        fragmentShader.release()
+    }
 }
 
 class CameraRenderPass(
@@ -38,18 +131,12 @@ class CameraRenderPass(
         vertexShader.init()
         fragmentShader.init()
         program.init()
-        vertexShader.loadLocations(program.programId)
         configureProgram(program, vertexShader)
         texId = gles20Wrapper.createTexture(fragmentShader.textureType)
     }
 
-    override fun setSurfaceSize(width: Int, height: Int) {
-        this.width = width
-        this.height = height
-    }
-
-    override fun draw(texMatrix: FloatArray, mvpMatrix: FloatArray) {
-        gles20Wrapper.glViewport(0, 0, width, height)
+    override fun draw(texMatrix: FloatArray, mvpMatrix: FloatArray, surfaceSize: Size) {
+        gles20Wrapper.glViewport(0, 0, surfaceSize.width, surfaceSize.height)
         gles20Wrapper.glUseProgram(program.programId)
         gles20Wrapper.glUniformMatrix4fv(
             vertexShader.uTexMatrix,
@@ -73,24 +160,8 @@ class CameraRenderPass(
 
     private fun configureProgram(program: GlProgram, vertexShader: DefaultVertexShader) {
         gles20Wrapper.glUseProgram(program.programId)
-        gles20Wrapper.glEnableVertexAttribArray(vertexShader.aPosition)
-        gles20Wrapper.glVertexAttribPointer(
-            vertexShader.aPosition,
-            2,
-            GLES20.GL_FLOAT,
-            false,
-            0, // No interleaving
-            GlCoordinates.VERTEX_COORDS,
-        )
-        gles20Wrapper.glEnableVertexAttribArray(vertexShader.aTexCoords)
-        gles20Wrapper.glVertexAttribPointer(
-            vertexShader.aTexCoords,
-            2,
-            GLES20.GL_FLOAT,
-            false,
-            0, // No interleaving
-            GlCoordinates.TEX_COORDS,
-        )
+        vertexShader.loadLocations(program.programId)
+        vertexShader.configureAttributes()
     }
 
     override fun release() {

@@ -1,5 +1,6 @@
 package app.myzel394.alibi.services.effect.opengl
 
+import android.content.Context
 import android.opengl.EGL14
 import android.opengl.EGLSurface
 import android.opengl.Matrix
@@ -7,8 +8,10 @@ import android.view.Surface
 import androidx.camera.core.SurfaceOutput
 
 class OpenGlRenderer(
+    private val context: Context,
     private val eglCore: EglCore = EglCore(),
     private val cameraRenderPass: CameraRenderPass = CameraRenderPass(),
+    private val watermarkRenderPass: WatermarkRenderPass = WatermarkRenderPass(context),
 ) {
 
     private var tempSurface: EGLSurface = EGL14.EGL_NO_SURFACE
@@ -39,6 +42,7 @@ class OpenGlRenderer(
         eglCore.makeCurrent(tempSurface)
 
         cameraRenderPass.init()
+        watermarkRenderPass.init()
     }
 
     fun register(key: SurfaceOutput, surface: Surface) {
@@ -57,8 +61,7 @@ class OpenGlRenderer(
         surfaceMap.forEach { (surfaceOutput, eglSurface) ->
             eglCore.makeCurrent(eglSurface)
 
-            cameraRenderPass.setSurfaceSize(surfaceOutput.size.width, surfaceOutput.size.height)
-            cameraRenderPass.draw(texMatrix, mvpMatrix)
+            cameraRenderPass.draw(texMatrix, mvpMatrix, surfaceOutput.size)
 
             eglCore.setPresentationTime(eglSurface, timestampNs)
             eglCore.swapBuffer(eglSurface)
@@ -70,6 +73,9 @@ class OpenGlRenderer(
             return
         }
         isInit = false
+
+        cameraRenderPass.release()
+        watermarkRenderPass.release()
 
         surfaceMap.forEach {
             it.key.close()

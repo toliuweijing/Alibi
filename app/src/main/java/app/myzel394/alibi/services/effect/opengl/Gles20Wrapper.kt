@@ -3,8 +3,6 @@ package app.myzel394.alibi.services.effect.opengl
 import android.opengl.GLES20
 import java.nio.Buffer
 
-const val GL_INVALID = -1
-
 /**
  * Execute gl commands via GLES20 and check for errors before returning.
  */
@@ -119,6 +117,26 @@ class Gles20Wrapper {
     ) {
         GLES20.glUniformMatrix4fv(location, count, transpose, floatArray, offset)
         checkGlError("glUniformMatrix4fv")
+    }
+
+    fun glEnable(mode: Int) {
+        GLES20.glEnable(mode)
+        checkGlError("glEnable $mode")
+    }
+
+    fun glDisable(mode: Int) {
+        GLES20.glDisable(mode)
+        checkGlError("glDisable $mode")
+    }
+
+    fun glBlendFunc(sourceFactor: Int, destinationFactor: Int) {
+        GLES20.glBlendFunc(sourceFactor, destinationFactor)
+        checkGlError("glBlendFunc")
+    }
+
+    fun glActiveTexture(texture: Int) {
+        GLES20.glActiveTexture(texture)
+        checkGlError("glActiveTexture")
     }
 
     fun glDrawArrays(mode: Int, first: Int, count: Int) {
