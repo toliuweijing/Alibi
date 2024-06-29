@@ -18,7 +18,7 @@ class OpenGlRenderer(
 
     // TODO: decouple SurfaceOutput from this class
     private val surfaceMap: HashMap<SurfaceOutput, EGLSurface> = HashMap()
-    private val mvpMatrix = FloatArray(16).also {
+    private val identityMatrix = FloatArray(16).also {
         Matrix.setIdentityM(it, 0)
     }
     private var isInit = false
@@ -61,7 +61,8 @@ class OpenGlRenderer(
         surfaceMap.forEach { (surfaceOutput, eglSurface) ->
             eglCore.makeCurrent(eglSurface)
 
-            cameraRenderPass.draw(texMatrix, mvpMatrix, surfaceOutput.size)
+            cameraRenderPass.draw(texMatrix, identityMatrix, surfaceOutput.size)
+            watermarkRenderPass.draw(identityMatrix, identityMatrix, surfaceOutput.size)
 
             eglCore.setPresentationTime(eglSurface, timestampNs)
             eglCore.swapBuffer(eglSurface)

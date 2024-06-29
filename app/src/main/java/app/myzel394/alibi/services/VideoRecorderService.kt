@@ -225,7 +225,6 @@ class VideoRecorderService :
 
                 _cameraAvailableListener.complete(Unit)
             } catch (error: IllegalArgumentException) {
-                watermarkEffect.release()
                 onError()
             }
         }

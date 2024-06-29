@@ -34,6 +34,9 @@ class WatermarkRenderPass(
     private val gles20Wrapper: Gles20Wrapper = Gles20Wrapper.DEFAULT,
 ) : RenderPass {
 
+    private val TEXT_SIZE = 30
+    private val BOTTOM_PADDING = 2
+
     constructor(
         context: Context,
         vertexShader: DefaultVertexShader =
@@ -44,15 +47,17 @@ class WatermarkRenderPass(
 
     private var texId: Int = GL_INVALID
 
-    private val textFormat = SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SS", Locale.US);
+    private val textFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SS", Locale.US);
 
     private val paint = Paint().apply {
         // prefer dp over sp for video watermark
-        textSize = 20 * context.resources.displayMetrics.density
+        textSize = TEXT_SIZE * context.resources.displayMetrics.density
         isAntiAlias = true
         color = Color.WHITE
         setShadowLayer(1f, 0f, 0f, Color.BLACK)
     }
+
+    private val bottomPadding = (BOTTOM_PADDING * context.resources.displayMetrics.density).toInt()
 
     private val bitmap: Bitmap by lazy {
         val text = textFormat.format(Date())
@@ -85,12 +90,14 @@ class WatermarkRenderPass(
 
         gles20Wrapper.glEnable(GLES20.GL_BLEND)
         gles20Wrapper.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+
         gles20Wrapper.glActiveTexture(GLES20.GL_TEXTURE0)
         gles20Wrapper.glBindTexture(fragmentShader.textureType, texId)
         drawTextToBitmap()
-        gles20Wrapper.glViewport(0, 0, bitmap.width, bitmap.height)
+        gles20Wrapper.glViewport(0, bottomPadding, bitmap.width, bitmap.height)
         GLUtils.texImage2D(fragmentShader.textureType, 0, bitmap, 0)
 
+        vertexShader.configureMatrix(texMatrix, mvpMatrix)
         gles20Wrapper.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
 
         gles20Wrapper.glDisable(GLES20.GL_BLEND)
@@ -98,8 +105,8 @@ class WatermarkRenderPass(
 
     private fun drawTextToBitmap() {
         val text = textFormat.format(Date())
-        bitmap.eraseColor(Color.TRANSPARENT)
-        canvas.drawText(text, 0f, 0f, paint)
+        bitmap.eraseColor(Color.BLACK)
+        canvas.drawText(text, 0f, bitmap.height * 1f, paint)
     }
 
     override fun release() {

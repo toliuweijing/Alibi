@@ -5,6 +5,9 @@ package app.myzel394.alibi.services.effect.opengl
  */
 object ShaderSource {
 
+    /**
+     * A standard vertex shader for vertices and texture coordinates.
+     */
     val VERTEX_DEFAULT =
         """
         attribute vec4 aPosition;
@@ -19,6 +22,9 @@ object ShaderSource {
         }
         """
 
+    /**
+     * A fragment shader with the external texture.
+     */
     val FRAGMENT_TEXTURE_EXT =
         """
         #extension GL_OES_EGL_image_external : require
@@ -32,6 +38,9 @@ object ShaderSource {
         }
         """
 
+    /**
+     * A fragment shader with the 2D texture.
+     */
     val FRAGMENT_TEXTURE_2D =
         """
         precision mediump float;
@@ -40,7 +49,7 @@ object ShaderSource {
         varying vec2 vTexCoords; 
         
         void main() {
-            g_FragColor = texture2D(uTexture, vTexCoords);
+            gl_FragColor = texture2D(uTexture, vec2(vTexCoords.x, 1.0 - vTexCoords.y));
         }
         """
 }

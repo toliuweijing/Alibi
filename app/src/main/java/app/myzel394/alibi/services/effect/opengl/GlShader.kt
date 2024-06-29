@@ -83,6 +83,11 @@ class DefaultVertexShader(
             GlCoordinates.TEX_COORDS,
         )
     }
+
+    fun configureMatrix(texMatrix: FloatArray, mvpMatrix: FloatArray) {
+        gles20.glUniformMatrix4fv(uTexMatrix, 1, false, texMatrix, 0)
+        gles20.glUniformMatrix4fv(uMvpMatrix, 1, false, mvpMatrix, 0)
+    }
 }
 
 class FragmentTextureShader(
