@@ -17,11 +17,11 @@ class EglCore {
     private var config: EGLConfig? = null
     private var context: EGLContext = EGL14.EGL_NO_CONTEXT
 
-    fun init(sharedContext: EGLContext? = null) {
+    fun init(sharedContext: EGLContext = EGL14.EGL_NO_CONTEXT) {
         try {
             // EGLDisplay
             display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY).also {
-                check(display != EGL14.EGL_NO_DISPLAY) {
+                check(it != EGL14.EGL_NO_DISPLAY) {
                     "glGetDisplay fails, ${EGL14.eglGetError()}"
                 }
             }

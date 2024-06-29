@@ -9,6 +9,7 @@ sealed class GlShader(
     private val gles20: Gles20Wrapper = Gles20Wrapper.DEFAULT,
 ) {
     var shaderId: Int = GL_INVALID
+        private set
 
     fun init() {
         shaderId = gles20.loadShader(shaderType, shaderSource)
@@ -45,9 +46,9 @@ class DefaultVertexShader(
 
     fun loadLocations(program: Int) {
         aPosition = gles20.glGetAttribLocation(program, "aPosition")
-        aTexCoords = gles20.glGetAttribLocation(program, "aTexCoord")
+        aTexCoords = gles20.glGetAttribLocation(program, "aTexCoords")
         uTexMatrix = gles20.glGetUniformLocation(program, "uTexMatrix")
-        uMvpMatrix = gles20.glGetUniformLocation(program, "uPosMatrix")
+        uMvpMatrix = gles20.glGetUniformLocation(program, "uMvpMatrix")
     }
 }
 

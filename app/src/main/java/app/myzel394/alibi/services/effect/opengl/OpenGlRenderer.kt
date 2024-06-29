@@ -37,6 +37,8 @@ class OpenGlRenderer(
         eglCore.init()
         tempSurface = eglCore.createPbufferSurface(1, 1)
         eglCore.makeCurrent(tempSurface)
+
+        cameraRenderPass.init()
     }
 
     fun register(key: SurfaceOutput, surface: Surface) {

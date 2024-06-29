@@ -14,8 +14,8 @@ object ShaderSource {
         varying vec2 vTexCoords;
         
         void main() {
-            vTexCoords = uTexMatrix * aTexCoords;
-            a_Position = uMVP * aPosition;
+            vTexCoords = (uTexMatrix * aTexCoords).xy;
+            gl_Position = uMvpMatrix * aPosition;
         }
         """
 
@@ -28,7 +28,7 @@ object ShaderSource {
         varying vec2 vTexCoords; 
         
         void main() {
-            g_FragColor = texture2D(uTexture, vTexCoords);
+            gl_FragColor = texture2D(uTexture, vTexCoords);
         }
         """
 

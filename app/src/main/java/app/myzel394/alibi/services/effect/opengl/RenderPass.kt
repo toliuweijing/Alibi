@@ -76,7 +76,7 @@ class CameraRenderPass(
         gles20Wrapper.glEnableVertexAttribArray(vertexShader.aPosition)
         gles20Wrapper.glVertexAttribPointer(
             vertexShader.aPosition,
-            4,
+            2,
             GLES20.GL_FLOAT,
             false,
             0, // No interleaving
@@ -85,7 +85,7 @@ class CameraRenderPass(
         gles20Wrapper.glEnableVertexAttribArray(vertexShader.aTexCoords)
         gles20Wrapper.glVertexAttribPointer(
             vertexShader.aTexCoords,
-            4,
+            2,
             GLES20.GL_FLOAT,
             false,
             0, // No interleaving

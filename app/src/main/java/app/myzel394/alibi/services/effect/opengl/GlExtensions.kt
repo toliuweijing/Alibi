@@ -16,11 +16,10 @@ fun Gles20Wrapper.loadShader(shaderType: Int, shaderSource: String, program: Int
         }
         return shader
     } catch (e: IllegalStateException) {
-        throw e
-    } finally {
         if (shader != -1) {
             glDeleteShader(shader)
         }
+        throw e
     }
 }
 

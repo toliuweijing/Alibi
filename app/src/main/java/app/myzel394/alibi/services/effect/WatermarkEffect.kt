@@ -3,6 +3,7 @@ package app.myzel394.alibi.services.effect
 import android.graphics.SurfaceTexture
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.view.Surface
 import androidx.camera.core.CameraEffect
 import androidx.camera.core.SurfaceOutput
@@ -31,6 +32,7 @@ class WatermarkEffect(
     }
 }
 
+private const val TAG = "WatermarkSurfaceProcessor"
 class WatermarkSurfaceProcessor(
     private val openGlRenderer: OpenGlRenderer = OpenGlRenderer(),
 ) : SurfaceProcessor, SurfaceTexture.OnFrameAvailableListener {
@@ -43,12 +45,20 @@ class WatermarkSurfaceProcessor(
 
     private val texMatrix = FloatArray(16)
 
+    private var inputSurface: InputSurface? = null
+
+    class InputSurface(
+        val surfaceTexture: SurfaceTexture,
+        val surface: Surface,
+    )
+
     override fun onInputSurface(request: SurfaceRequest) {
         val surfaceTexture = SurfaceTexture(openGlRenderer.texId).apply {
             setOnFrameAvailableListener(this@WatermarkSurfaceProcessor, glHandler)
             setDefaultBufferSize(request.resolution.width, request.resolution.height)
         }
         val surface = Surface(surfaceTexture)
+        inputSurface = InputSurface(surfaceTexture, surface)
 
         request.provideSurface(surface, glExecutor) {
             surfaceTexture.setOnFrameAvailableListener(null)
@@ -75,6 +85,12 @@ class WatermarkSurfaceProcessor(
     }
 
     fun release() = glHandler.post {
+        inputSurface?.apply {
+            surfaceTexture.setOnFrameAvailableListener(null)
+            surfaceTexture.release()
+            surface.release()
+        }
+        inputSurface = null
         openGlRenderer.release()
     }
 
