@@ -34,6 +34,12 @@ class WatermarkSurfaceProcessor(
         val surface: Surface,
     )
 
+    init {
+        glHandler.post {
+            openGlRenderer.init()
+        }
+    }
+
     override fun onInputSurface(request: SurfaceRequest) {
         val surfaceTexture = SurfaceTexture(openGlRenderer.texId).apply {
             setOnFrameAvailableListener(this@WatermarkSurfaceProcessor, glHandler)
@@ -57,16 +63,17 @@ class WatermarkSurfaceProcessor(
         openGlRenderer.register(surfaceOutput, surface)
     }
 
-    fun init() = glHandler.post {
-        try {
-            openGlRenderer.init()
-        } catch (e: IllegalStateException) {
-            openGlRenderer.release()
-            throw e
-        }
+    override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
+        surfaceTexture.updateTexImage()
+        surfaceTexture.getTransformMatrix(texMatrix)
+        openGlRenderer.draw(surfaceTexture.timestamp, texMatrix)
     }
 
     fun release() = glHandler.post {
+        releaseInternal()
+    }
+
+    private fun releaseInternal() {
         inputSurface?.apply {
             surfaceTexture.setOnFrameAvailableListener(null)
             surfaceTexture.release()
@@ -75,11 +82,5 @@ class WatermarkSurfaceProcessor(
         inputSurface = null
         openGlRenderer.release()
         glThread.quitSafely()
-    }
-
-    override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
-        surfaceTexture.updateTexImage()
-        surfaceTexture.getTransformMatrix(texMatrix)
-        openGlRenderer.draw(surfaceTexture.timestamp, texMatrix)
     }
 }

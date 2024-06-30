@@ -23,10 +23,10 @@ import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import app.myzel394.alibi.NotificationHelper
 import app.myzel394.alibi.db.RecordingInformation
+import app.myzel394.alibi.effect.WatermarkEffect
 import app.myzel394.alibi.enums.RecorderState
 import app.myzel394.alibi.helpers.BatchesFolder
 import app.myzel394.alibi.helpers.VideoBatchesFolder
-import app.myzel394.alibi.effect.WatermarkEffect
 import app.myzel394.alibi.ui.SUPPORTS_SAVING_VIDEOS_IN_CUSTOM_FOLDERS
 import app.myzel394.alibi.ui.SUPPORTS_SCOPED_STORAGE
 import kotlinx.coroutines.CompletableDeferred
@@ -102,8 +102,8 @@ class VideoRecorderService :
             _cameraCloserListener.await()
         }
 
+        // Safely release the effect after camera close.
         watermarkEffect?.release()
-        watermarkEffect = null
     }
 
     override fun pause() {
@@ -190,10 +190,8 @@ class VideoRecorderService :
     // Used to open it for a longer time, shouldn't be called when pausing / resuming.
     // This should only be called when starting a recording.
     private suspend fun openCamera() {
-        val context = this@VideoRecorderService
-
         cameraProvider = withContext(Dispatchers.IO) {
-            ProcessCameraProvider.getInstance(context).get()
+            ProcessCameraProvider.getInstance(this@VideoRecorderService).get()
         }
 
         val recorder = buildRecorder()
@@ -201,8 +199,7 @@ class VideoRecorderService :
             this.videoCapture = it
         }
 
-        val watermarkEffect = WatermarkEffect(context).also {
-            it.init()
+        val watermarkEffect = WatermarkEffect(applicationContext).also {
             this.watermarkEffect = it
         }
         val useCaseGroup = UseCaseGroup.Builder()
@@ -225,6 +222,8 @@ class VideoRecorderService :
 
                 _cameraAvailableListener.complete(Unit)
             } catch (error: IllegalArgumentException) {
+                // Safely release the effect due to camera open error.
+                watermarkEffect.release()
                 onError()
             }
         }
